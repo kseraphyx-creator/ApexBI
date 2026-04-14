@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#08090d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>APEX Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#08090d;--surface:#0f1117;--card:#13151e;--border:#1e2235;--accent:#00e5b0;--accent2:#ff6b35;--accent3:#7c6aff;--text:#e8eaf0;--muted:#5a607a;--danger:#ff4560}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* SCREENS */
+.screen{display:none;min-height:100vh;flex-direction:column}
+.screen.active{display:flex}
+
+/* SPLASH */
+#splash{background:var(--bg);align-items:center;justify-content:center;gap:20px}
+.splash-logo{width:90px;height:90px;background:var(--accent);border-radius:24px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-weight:700;font-size:28px;color:#000;animation:popIn .6s ease}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.splash-title{font-size:32px;font-weight:800;background:linear-gradient(135deg,var(--text),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:fadeUp .8s .3s both}
+.splash-sub{color:var(--muted);font-size:13px;text-align:center;animation:fadeUp .8s .5s both}
+.splash-bar{width:200px;height:3px;background:var(--border);border-radius:2px;margin-top:40px;overflow:hidden;animation:fadeUp .8s .6s both}
+.splash-fill{height:100%;background:var(--accent);border-radius:2px;animation:load 2s .8s forwards}
+@keyframes load{from{width:0}to{width:100%}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* LOGIN */
+#login{background:var(--bg);align-items:center;justify-content:center;padding:24px}
+.login-logo{width:70px;height:70px;background:var(--accent);border-radius:20px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-weight:700;font-size:22px;color:#000;margin-bottom:16px}
+.login-title{font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px;text-align:center}
+.login-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:32px}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;width:100%;max-width:380px}
+.field-label{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;margin-top:16px}
+.field-label:first-child{margin-top:0}
+.field-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Syne',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.field-input:focus{border-color:var(--accent)}
+.field-input::placeholder{color:var(--muted)}
+.login-btn{width:100%;background:var(--accent);border:none;border-radius:10px;padding:14px;color:#000;font-weight:800;font-size:15px;font-family:'Syne',sans-serif;margin-top:20px;cursor:pointer;transition:transform .1s}
+.login-btn:active{transform:scale(.98)}
+.demo-btn{width:100%;background:transparent;border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--muted);font-family:'Syne',sans-serif;font-size:13px;margin-top:10px;cursor:pointer}
+.err-msg{color:var(--danger);font-size:12px;text-align:center;margin-top:10px;min-height:18px}
+
+/* DASHBOARD */
+#dashboard{background:var(--bg)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar-title{font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--text),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.topbar-sub{font-size:10px;color:var(--muted)}
+.ai-badge{display:flex;align-items:center;gap:6px;background:rgba(0,229,176,.1);border:1px solid rgba(0,229,176,.2);border-radius:20px;padding:5px 10px}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.ai-badge-text{font-size:10px;font-weight:700;color:var(--accent)}
+
+.content{padding:14px;padding-bottom:80px;overflow-y:auto}
+.section-title{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px;margin-top:20px}
+.section-title:first-child{margin-top:0}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;position:relative;overflow:hidden;transition:transform .15s}
+.kpi-card:active{transform:scale(.97)}
+.kpi-top{position:absolute;top:0;left:0;right:0;height:2px}
+.kpi-label{font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:6px}
+.kpi-value{font-size:22px;font-weight:800;letter-spacing:-1px;margin-bottom:4px}
+.kpi-delta{font-size:11px;font-weight:600}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.card-badge{background:rgba(0,229,176,.1);border:1px solid rgba(0,229,176,.2);border-radius:4px;padding:2px 8px;font-size:9px;color:var(--accent);font-family:'Space Mono',monospace}
+
+/* CHART */
+.chart-wrap{height:160px;position:relative}
+
+/* PRODUCTS */
+.product-row{margin-bottom:12px}
+.product-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.product-name{font-size:13px;color:var(--text)}
+.product-rev{font-size:11px;font-family:'Space Mono',monospace;color:var(--muted)}
+.product-growth{font-size:12px;font-weight:700}
+.prog-track{height:3px;background:var(--border);border-radius:2px}
+.prog-fill{height:3px;border-radius:2px;background:var(--accent)}
+
+/* SEGMENTS */
+.seg-row{margin-bottom:10px}
+.seg-info{display:flex;justify-content:space-between;margin-bottom:5px}
+.seg-name{font-size:12px;color:var(--text)}
+.seg-pct{font-size:12px;font-weight:700}
+.seg-track{height:5px;background:var(--border);border-radius:3px}
+.seg-bar{height:5px;border-radius:3px}
+
+/* GEO */
+.geo-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(30,34,53,.6)}
+.geo-row:last-child{border-bottom:none}
+.geo-flag{font-size:18px}
+.geo-name{flex:1;font-size:13px}
+.geo-bar-wrap{width:60px}
+.geo-bar{height:4px;border-radius:2px;background:var(--accent3)}
+.geo-val{font-size:11px;font-family:'Space Mono',monospace;color:var(--muted);width:36px;text-align:right}
+
+/* AI CHAT */
+.ai-header{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.ai-avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ai-name{font-size:13px;font-weight:700;color:var(--text)}
+.ai-desc{font-size:11px;color:var(--muted)}
+.quick-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.qp{background:transparent;border:1px solid var(--border);border-radius:20px;padding:5px 12px;color:var(--muted);font-size:11px;font-family:'Syne',sans-serif;cursor:pointer;transition:all .15s}
+.qp:active{border-color:var(--accent);color:var(--accent)}
+.messages{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;max-height:260px;overflow-y:auto}
+.msg{padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.6;max-width:88%}
+.msg.user{background:rgba(0,229,176,.1);border:1px solid rgba(0,229,176,.2);align-self:flex-end}
+.msg.ai{background:var(--surface);border:1px solid var(--border);align-self:flex-start}
+.msg-label{font-size:9px;color:var(--accent);font-weight:700;letter-spacing:1px;margin-bottom:4px}
+.input-row{display:flex;gap:8px}
+.msg-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none}
+.msg-input:focus{border-color:var(--accent)}
+.msg-input::placeholder{color:var(--muted)}
+.ask-btn{background:var(--accent);border:none;border-radius:10px;padding:10px 14px;color:#000;font-weight:700;font-size:12px;font-family:'Syne',sans-serif;cursor:pointer;white-space:nowrap}
+.ask-btn:active{opacity:.8}
+.ask-btn:disabled{opacity:.5}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;padding:6px 0 10px;z-index:50}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;transition:all .15s}
+.nav-icon{font-size:20px}
+.nav-label{font-size:9px;font-weight:600;color:var(--muted);transition:color .15s}
+.nav-item.active .nav-label{color:var(--accent)}
+
+/* ABOUT SCREEN */
+#about{background:var(--bg);padding:24px}
+.about-back{color:var(--accent);font-size:13px;cursor:pointer;margin-bottom:20px;display:inline-block}
+.about-logo{width:80px;height:80px;background:var(--accent);border-radius:22px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-weight:700;font-size:24px;color:#000;margin:0 auto 16px}
+.about-title{font-size:26px;font-weight:800;text-align:center;background:linear-gradient(135deg,var(--text),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.about-version{text-align:center;color:var(--muted);font-size:12px;margin-bottom:24px}
+.about-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.about-card-title{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px}
+.about-card-text{font-size:13px;color:var(--text);line-height:1.7}
+.founder-badge{background:rgba(0,229,176,.1);border:1px solid rgba(0,229,176,.2);border-radius:10px;padding:14px;text-align:center;margin-bottom:12px}
+.founder-name{font-size:18px;font-weight:800;color:var(--text)}
+.founder-title{font-size:12px;color:var(--accent);font-weight:600;margin-top:4px}
+.stack-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(30,34,53,.6);font-size:13px}
+.stack-row:last-child{border-bottom:none}
+.stack-key{color:var(--muted)}
+.stack-val{color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div class="screen active" id="splash">
+  <div class="splash-logo">AP</div>
+  <div class="splash-title">APEX Intelligence</div>
+  <div class="splash-sub">AI-Powered Business Intelligence<br>for SMEs · India & Global 🇮🇳</div>
+  <div class="splash-bar"><div class="splash-fill"></div></div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div class="screen" id="login">
+  <div class="login-logo">AP</div>
+  <div class="login-title">APEX Intelligence</div>
+  <div class="login-sub">AI-Powered EXecutive Intelligence<br>for SMEs · India & Global</div>
+  <div class="login-card">
+    <div class="field-label">Email Address</div>
+    <input class="field-input" id="emailInput" type="email" placeholder="demo@apex.ai">
+    <div class="field-label">Password</div>
+    <input class="field-input" id="passInput" type="password" placeholder="Enter password">
+    <div class="err-msg" id="errMsg"></div>
+    <button class="login-btn" onclick="doLogin()">Sign In to APEX</button>
+    <button class="demo-btn" onclick="fillDemo()">Fill Demo Credentials</button>
+  </div>
+</div>
+
+<!-- DASHBOARD SCREEN -->
+<div class="screen" id="dashboard">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">APEX Intelligence</div>
+      <div class="topbar-sub">AI-Powered BI · SME Edition</div>
+    </div>
+    <div class="ai-badge">
+      <div class="ai-dot"></div>
+      <div class="ai-badge-text">Claude AI</div>
+    </div>
+  </div>
+
+  <div class="content" id="mainContent">
+
+    <!-- KPI CARDS -->
+    <div class="section-title">Key Performance Indicators</div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-top" style="background:var(--accent)"></div>
+        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-value" style="color:var(--accent)">$777.9K</div>
+        <div class="kpi-delta" style="color:var(--accent)">↑ 34.7% YoY</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top" style="background:var(--accent3)"></div>
+        <div class="kpi-label">Net Profit</div>
+        <div class="kpi-value" style="color:var(--accent3)">$235.1K</div>
+        <div class="kpi-delta" style="color:var(--accent)">↑ 30.2% margin</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top" style="background:var(--accent2)"></div>
+        <div class="kpi-label">Customers</div>
+        <div class="kpi-value" style="color:var(--accent2)">2,847</div>
+        <div class="kpi-delta" style="color:var(--accent)">↑ 8.4% MoM</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top" style="background:var(--danger)"></div>
+        <div class="kpi-label">Churn Rate</div>
+        <div class="kpi-value" style="color:var(--danger)">2.3%</div>
+        <div class="kpi-delta" style="color:var(--danger)">↓ 0.4% vs last</div>
+      </div>
+    </div>
+
+    <!-- REVENUE CHART -->
+    <div class="section-title">Revenue Overview</div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Revenue vs Expenses</div>
+        <div class="card-badge">12 MONTHS</div>
+      </div>
+      <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="section-title">Product Performance</div>
+    <div class="card" id="productsCard"></div>
+
+    <!-- SEGMENTS -->
+    <div class="section-title">Customer Segments</div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Market Breakdown</div>
+        <div class="card-badge">LIVE</div>
+      </div>
+      <div id="segmentsCard"></div>
+    </div>
+
+    <!-- GEO -->
+    <div class="section-title">Regional Revenue</div>
+    <div class="card" id="geoCard"></div>
+
+    <!-- AI CHAT -->
+    <div class="section-title">AI Business Analyst</div>
+    <div class="card">
+      <div class="ai-header">
+        <div class="ai-avatar">🤖</div>
+        <div>
+          <div class="ai-name">Claude AI Analyst</div>
+          <div class="ai-desc">Ask anything about your business</div>
+        </div>
+      </div>
+      <div class="quick-row">
+        <button class="qp" onclick="sendQ('What are my top growth opportunities?')">Growth</button>
+        <button class="qp" onclick="sendQ('Analyze my churn risk')">Churn risk</button>
+        <button class="qp" onclick="sendQ('Which product to prioritize?')">Products</button>
+        <button class="qp" onclick="sendQ('Summarize my business health')">Health check</button>
+      </div>
+      <div class="messages" id="messages">
+        <div class="msg ai">
+          <div class="msg-label">APEX AI · READY</div>
+          Hello! I'm your AI business analyst powered by Claude. Ask me anything about your revenue, customers, products, or strategy — I have your full business data.
+        </div>
+      </div>
+      <div class="input-row">
+        <input class="msg-input" id="msgInput" placeholder="Ask Claude..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="ask-btn" id="askBtn" onclick="sendMsg()">Ask AI</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
+      <div class="nav-icon">📊</div>
+      <div class="nav-label">Dashboard</div>
+    </div>
+    <div class="nav-item" id="nav-analytics" onclick="switchTab('analytics')">
+      <div class="nav-icon">📈</div>
+      <div class="nav-label">Analytics</div>
+    </div>
+    <div class="nav-item" id="nav-data" onclick="switchTab('data')">
+      <div class="nav-icon">📁</div>
+      <div class="nav-label">Data</div>
+    </div>
+    <div class="nav-item" id="nav-settings" onclick="showAbout()">
+      <div class="nav-icon">⚙️</div>
+      <div class="nav-label">Settings</div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT / SETTINGS SCREEN -->
+<div class="screen" id="about">
+  <span class="about-back" onclick="showScreen('dashboard')">← Back to Dashboard</span>
+  <div class="about-logo">AP</div>
+  <div class="about-title">APEX Intelligence</div>
+  <div class="about-version">Version 1.0.0 · AI-Powered EXecutive Intelligence</div>
+
+  <div class="founder-badge">
+    <div class="founder-name">Khushi Choudhary</div> 
+    <div class="founder-name" style="font-size:15px;margin-top:4px">& Kartik Baliyan</div>
+    <div class="founder-title">Founder & CEO · APEX Intelligence</div>
+  </div>
+
+  <div class="about-card">
+    <div class="about-card-title">Mission</div>
+    <div class="about-card-text">To bring enterprise-grade AI business intelligence to every SME in India and beyond — making powerful analytics accessible to all, not just large corporations.</div>
+  </div>
+
+  <div class="about-card">
+    <div class="about-card-title">Technology Stack</div>
+    <div class="stack-row"><span class="stack-key">Frontend</span><span class="stack-val">React Native + Expo</span></div>
+    <div class="stack-row"><span class="stack-key">Backend</span><span class="stack-val">Python FastAPI</span></div>
+    <div class="stack-row"><span class="stack-key">AI Engine</span><span class="stack-val">Anthropic Claude</span></div>
+    <div class="stack-row"><span class="stack-key">Charts</span><span class="stack-val">Chart.js</span></div>
+    <div class="stack-row"><span class="stack-key">Platform</span><span class="stack-val">Android + Web PWA</span></div>
+  </div>
+
+  <div class="about-card">
+    <div class="about-card-title">Market Impact</div>
+    <div class="about-card-text">63 million SMEs in India. 30% of GDP. 110 million jobs. Zero affordable BI tools. APEX changes that.</div>
+  </div>
+
+  <div class="about-card">
+    <div class="about-card-title">Business Model</div>
+    <div class="about-card-text">₹499/month subscription · ₹15,000 setup fee · Google Play freemium · Startup India funding</div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────
+const DATA = {
+  months:  ['J','F','M','A','M','J','J','A','S','O','N','D'],
+  revenue: [42,38.5,51.2,47.8,63.4,58.9,71.2,69.8,78.5,82.1,79.4,95.6],
+  expenses:[31,29.5,34.2,32.8,41.4,39.9,45.2,44.8,49.5,52.1,50.4,58.6],
+  products:[
+    {name:'Product C',rev:'$210k',growth:'+28.7%',pos:true,bar:100},
+    {name:'Product E',rev:'$189k',growth:'+18.9%',pos:true,bar:90},
+    {name:'Product A',rev:'$145k',growth:'+12.4%',pos:true,bar:69},
+    {name:'Product B',rev:'$98k', growth:'-3.2%', pos:false,bar:47},
+    {name:'Product D',rev:'$67k', growth:'+5.1%', pos:true,bar:32},
+  ],
+  segments:[
+    {name:'Enterprise', pct:35, color:'#00e5b0'},
+    {name:'Mid-Market', pct:25, color:'#7c6aff'},
+    {name:'SME',        pct:22, color:'#ff6b35'},
+    {name:'Startup',    pct:12, color:'#00b4ff'},
+    {name:'Individual', pct:6,  color:'#ff4560'},
+  ],
+  geo:[
+    {flag:'🇺🇸',name:'North America',share:40.1},
+    {flag:'🇮🇳',name:'India',        share:32.5},
+    {flag:'🇪🇺',name:'Europe',       share:15.1},
+    {flag:'🌏',name:'Asia Pacific',  share:8.5},
+    {flag:'🌎',name:'Other',         share:3.8},
+  ]
+};
+// ── SCREENS ───────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── SPLASH → LOGIN ────────────────────────────────────────
+setTimeout(() => showScreen('login'), 3000);
+
+// ── LOGIN ─────────────────────────────────────────────────
+function fillDemo() {
+  document.getElementById('emailInput').value = 'demo@apex.ai';
+  document.getElementById('passInput').value  = 'apex123';
+}
+
+function doLogin() {
+  const e = document.getElementById('emailInput').value.trim();
+  const p = document.getElementById('passInput').value.trim();
+  const err = document.getElementById('errMsg');
+  if (e === 'demo@apex.ai' && p === 'apex123') {
+    showScreen('dashboard');
+    initDashboard();
+  } else {
+    err.textContent = 'Use demo@apex.ai / apex123';
+    setTimeout(() => err.textContent = '', 3000);
+  }
+}
+
+// ── INIT DASHBOARD ────────────────────────────────────────
+let chartBuilt = false;
+function initDashboard() {
+  if (chartBuilt) return;
+  chartBuilt = true;
+  buildChart();
+  buildProducts();
+  buildSegments();
+  buildGeo();
+}
+
+// ── CHART ─────────────────────────────────────────────────
+function buildChart() {
+  const ctx = document.getElementById('revenueChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: DATA.months,
+      datasets: [
+        { label:'Revenue', data:DATA.revenue, backgroundColor:'rgba(0,229,176,.75)',
+          borderColor:'#00e5b0', borderWidth:1, borderRadius:3 },
+        { label:'Expenses', data:DATA.expenses, type:'line',
+          borderColor:'#ff6b35', backgroundColor:'transparent',
+          borderWidth:2, pointRadius:2, pointBackgroundColor:'#ff6b35', tension:0.4 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#5a607a', font:{ size:10 }, boxWidth:10 } } },
+      scales:{
+        x:{ grid:{ color:'rgba(30,34,53,.8)' }, ticks:{ color:'#5a607a', font:{ size:9 } } },
+        y:{ grid:{ color:'rgba(30,34,53,.8)' }, ticks:{ color:'#5a607a', font:{ size:9 },
+            callback: v => '$'+v+'k' } }
+      }
+    }
+  });
+}
+
+// ── PRODUCTS ──────────────────────────────────────────────
+function buildProducts() {
+  const el = document.getElementById('productsCard');
+  el.innerHTML = '<div class="card-header"><div class="card-title">Top Products</div></div>';
+  DATA.products.forEach(p => {
+    el.innerHTML += `
+      <div class="product-row">
+        <div class="product-info">
+          <span class="product-name">${p.name}</span>
+          <span class="product-rev">${p.rev}</span>
+          <span class="product-growth" style="color:${p.pos?'#00e5b0':'#ff4560'}">${p.growth}</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" style="width:${p.bar}%"></div></div>
+      </div>`;
+  });
+}
+
+// ── SEGMENTS ──────────────────────────────────────────────
+function buildSegments() {
+  const el = document.getElementById('segmentsCard');
+  DATA.segments.forEach(s => {
+    el.innerHTML += `
+      <div class="seg-row">
+        <div class="seg-info">
+          <span class="seg-name">${s.name}</span>
+          <span class="seg-pct" style="color:${s.color}">${s.pct}%</span>
+        </div>
+        <div class="seg-track">
+          <div class="seg-bar" style="width:${s.pct}%;background:${s.color}"></div>
+        </div>
+      </div>`;
+  });
+}
+
+// ── GEO ───────────────────────────────────────────────────
+function buildGeo() {
+  const el = document.getElementById('geoCard');
+  el.innerHTML = '<div class="card-header"><div class="card-title">Regional Revenue</div></div>';
+  DATA.geo.forEach(g => {
+    el.innerHTML += `
+      <div class="geo-row">
+        <span class="geo-flag">${g.flag}</span>
+        <span class="geo-name">${g.name}</span>
+        <div class="geo-bar-wrap">
+          <div class="geo-bar" style="width:${g.share*1.5}px"></div>
+        </div>
+        <span class="geo-val">${g.share}%</span>
+      </div>`;
+  });
+}
+
+// ── TABS ──────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-'+tab).classList.add('active');
+}
+
+function showAbout() {
+  switchTab('settings');
+  showScreen('about');
+}
+
+// ── AI CHAT ───────────────────────────────────────────────
+function addMsg(text, role) {
+  const box = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = role === 'ai'
+    ? `<div class="msg-label">APEX AI · CLAUDE</div>${text}`
+    : text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+async function sendMsg() {
+  const inp = document.getElementById('msgInput');
+  const btn = document.getElementById('askBtn');
+  const q   = inp.value.trim();
+  if (!q) return;
+  inp.value = ''; btn.disabled = true;
+  addMsg(q, 'user');
+  const thinking = addMsg('Analysing your business data...', 'ai');
+
+  const prompt = `You are a sharp business analyst for an Indian SME. Their data:
+Revenue YTD $777,900 (+34.7% YoY). Net Profit $235,100 (30.2% margin).
+Customers 2,847. Churn 2.3%. LTV $1,250. CAC $87. LTV:CAC ratio 14.4x.
+Products: C($210K,+28.7%), E($189K,+18.9%), A($145K,+12.4%), B($98K,-3.2%), D($67K,+5.1%).
+Regions: India 32.5%, North America 40.1%, Europe 15.1%, Asia Pacific 8.5%.
+Question: ${q}
+Give a sharp, specific answer in 3-4 sentences using exact numbers. Focus on actionable insights.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    thinking.innerHTML = `<div class="msg-label">APEX AI · CLAUDE</div>${data.content?.[0]?.text || 'Unable to respond.'}`;
+  } catch {
+    thinking.innerHTML = `<div class="msg-label">APEX AI · CLAUDE</div>Product C is your star at $210K (+28.7%) — prioritise scaling it. Product B is the only decliner at -3.2%, investigate the cause urgently. Your LTV:CAC of 14.4x is world-class — keep CAC below ₹7,500. India at 32.5% of revenue has the highest untapped growth potential domestically.<br><br><small style="opacity:.5">Connect API key for live Claude responses</small>`;
+  }
+  btn.disabled = false;
+}
+
+function sendQ(q) {
+  document.getElementById('msgInput').value = q;
+  sendMsg();
+}
+</script>
+</body>
+</html>
