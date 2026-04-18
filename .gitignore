@@ -1,0 +1,31 @@
+# â”€â”€ Python â”€â”€
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# â”€â”€ Virtual Environment â”€â”€
+venv/
+env/
+.venv/
+
+# â”€â”€ Environment / Secrets â”€â”€
+.env
+firebase-credentials.json
+
+# â”€â”€ IDE â”€â”€
+.vscode/
+.idea/
+*.swp
+
+# â”€â”€ OS â”€â”€
+.DS_Store
+Thumbs.db
+
+# â”€â”€ Logs â”€â”€
+*.log
